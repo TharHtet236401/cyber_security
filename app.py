@@ -16,7 +16,7 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     try:
-        data_path = Path(__file__).parent / "data_sets" / "Global_Cybersecurity_Threats_2015-2024.csv"
+        data_path = Path(__file__).parent / "data_sets" / "g_security_geo.csv"
         df = pd.read_csv(data_path)
         return df
     except Exception as e:
