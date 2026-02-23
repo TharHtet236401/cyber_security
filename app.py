@@ -111,8 +111,10 @@ st.markdown("---")
 # Geospatial map (if lat/lon available)
 if has_geo:
     st.subheader("🗺️ Geospatial View")
+    # Map country names for Plotly choropleth (UK -> United Kingdom)
+    country_map = {"UK": "United Kingdom", "USA": "United States"}
     geo_agg = (
-        filtered_df.groupby(["Country", "lat", "lon"])
+        filtered_df.groupby("Country")
         .agg(
             Incidents=("Country", "count"),
             Financial_Loss=("Financial Loss (in Million $)", "sum"),
@@ -120,23 +122,25 @@ if has_geo:
         )
         .reset_index()
     )
+    geo_agg["Country_Plotly"] = geo_agg["Country"].replace(country_map)
     map_metric = st.selectbox(
-        "Size bubbles by",
-        ["Incidents", "Financial_Loss", "Affected_Users"],
+        "Color countries by (darker = higher)",
+        ["Affected_Users", "Incidents", "Financial_Loss"],
         format_func=lambda x: {"Incidents": "Incident Count", "Financial_Loss": "Financial Loss ($M)", "Affected_Users": "Affected Users"}[x],
     )
-    fig_map = px.scatter_geo(
+    fig_map = px.choropleth(
         geo_agg,
-        lat="lat",
-        lon="lon",
-        size=map_metric,
+        locations="Country_Plotly",
+        locationmode="country names",
+        color=map_metric,
         hover_name="Country",
-        hover_data={"lat": False, "lon": False, "Incidents": True, "Financial_Loss": True, "Affected_Users": True},
-        size_max=40,
-        title="Cybersecurity Incidents by Country",
+        hover_data={"Country_Plotly": False, "Incidents": True, "Financial_Loss": True, "Affected_Users": True},
+        color_continuous_scale="Reds",
+        title="Cybersecurity Impact by Country (darker = higher value)",
     )
     fig_map.update_geos(showcountries=True, showcoastlines=True, showland=True)
     fig_map.update_layout(height=450, margin=dict(t=40))
+    fig_map.update_coloraxes(colorbar_title=map_metric.replace("_", " "))
     st.plotly_chart(fig_map, use_container_width=True)
     st.markdown("---")
 else:
