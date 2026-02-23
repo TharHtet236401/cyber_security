@@ -16,7 +16,7 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     try:
-        geo_path = Path(__file__).parent / "data_sets" / "g_security_geo.csv"
+        geo_path = Path(__file__).parent / "data_sets" / "global_security_geo.csv"
         if geo_path.exists():
             df = pd.read_csv(geo_path)
             return df
