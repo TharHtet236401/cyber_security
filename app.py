@@ -16,9 +16,12 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     try:
-        data_path = Path(__file__).parent / "data_sets" / "g_security_geo.csv"
-        df = pd.read_csv(data_path)
-        return df
+        geo_path = Path(__file__).parent / "data_sets" / "g_security_geo.csv"
+        if geo_path.exists():
+            df = pd.read_csv(geo_path)
+            return df
+        fallback_path = Path(__file__).parent / "data_sets" / "Global_Cybersecurity_Threats_2015-2024.csv"
+        return pd.read_csv(fallback_path)
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return pd.DataFrame()
@@ -27,6 +30,9 @@ df = load_data()
 
 if df.empty:
     st.stop()
+
+# Check for geospatial columns
+has_geo = "lat" in df.columns and "lon" in df.columns
 
 # Sidebar filters
 st.sidebar.header("Filters")
@@ -101,7 +107,40 @@ with col5:
     )
 
 st.markdown("---")
-#ingyin
+
+# Geospatial map (if lat/lon available)
+if has_geo:
+    st.subheader("🗺️ Geospatial View")
+    geo_agg = (
+        filtered_df.groupby(["Country", "lat", "lon"])
+        .agg(
+            Incidents=("Country", "count"),
+            Financial_Loss=("Financial Loss (in Million $)", "sum"),
+            Affected_Users=("Number of Affected Users", "sum"),
+        )
+        .reset_index()
+    )
+    map_metric = st.selectbox(
+        "Size bubbles by",
+        ["Incidents", "Financial_Loss", "Affected_Users"],
+        format_func=lambda x: {"Incidents": "Incident Count", "Financial_Loss": "Financial Loss ($M)", "Affected_Users": "Affected Users"}[x],
+    )
+    fig_map = px.scatter_geo(
+        geo_agg,
+        lat="lat",
+        lon="lon",
+        size=map_metric,
+        hover_name="Country",
+        hover_data={"lat": False, "lon": False, "Incidents": True, "Financial_Loss": True, "Affected_Users": True},
+        size_max=40,
+        title="Cybersecurity Incidents by Country",
+    )
+    fig_map.update_geos(showcountries=True, showcoastlines=True, showland=True)
+    fig_map.update_layout(height=450, margin=dict(t=40))
+    st.plotly_chart(fig_map, use_container_width=True)
+    st.markdown("---")
+else:
+    st.info("Geospatial map unavailable: dataset lacks `lat` and `lon` columns. Use `g_security_geo.csv` for map view.")
 
 # Row 1: Attack types and target industries
 row1_col1, row1_col2 = st.columns(2)
