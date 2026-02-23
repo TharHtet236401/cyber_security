@@ -32,6 +32,7 @@ if df.empty:
 st.sidebar.header("Filters")
 st.sidebar.markdown("---")
 
+#filter
 years = sorted(df["Year"].unique())
 selected_years = st.sidebar.multiselect("Year", years, default=years)
 
@@ -46,6 +47,7 @@ selected_industries = st.sidebar.multiselect("Target Industry", industries, defa
 
 attack_sources = sorted(df["Attack Source"].unique())
 selected_sources = st.sidebar.multiselect("Attack Source", attack_sources, default=attack_sources)
+
 
 # Apply filters
 filtered_df = df[
@@ -62,6 +64,7 @@ st.markdown("Analysis of cybersecurity incidents (2015–2024)")
 st.markdown("---")
 
 # KPI cards
+# inggyin
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
@@ -98,6 +101,7 @@ with col5:
     )
 
 st.markdown("---")
+#ingyin
 
 # Row 1: Attack types and target industries
 row1_col1, row1_col2 = st.columns(2)
@@ -170,13 +174,13 @@ with row3_col1:
         filtered_df.groupby("Country")["Financial Loss (in Million $)"]
         .sum()
         .sort_values(ascending=True)
-        .tail(15)
+        .tail(10)
     )
     fig_country = px.bar(
         x=country_loss.values,
         y=country_loss.index,
         orientation="h",
-        title="Top 15 Countries by Financial Loss (Million $)",
+        title="Top 10 Countries by Financial Loss (Million $)",
         labels={"x": "Financial Loss (Million $)", "y": "Country"},
     )
     fig_country.update_layout(margin=dict(t=40))
